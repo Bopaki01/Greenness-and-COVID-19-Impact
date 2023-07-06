@@ -1,0 +1,64 @@
+rm(list=ls(all=TRUE)) ##To clear the working directory
+
+##Importing data into R
+
+file.choose()
+
+
+GEMES <- read.table("C:\\Users\\pbopa\\OneDrive\\Documents\\University of Johannesburg\\Article 3_ Zhang Model\\research_data.txt", header = TRUE)
+attach(GEMES)
+names(GEMES)
+summary(GEMES)
+
+
+##Installation of neccessary packages
+install.packages("piecewiseSEM")
+install.packages( 'multcompView')
+library(piecewiseSEM)
+library(MASS)
+
+
+##Section 1.0. Testing for multicollinearity (VIF test)
+
+library(car)
+
+colliniearity <- glm(covid~use_type+evi+residence_time+income+comorbidity+age
+               +promote+usefulness+gender+safety+education, data = GEMES)
+vif(collinearity)
+
+
+###Section 1.1. Fitting a structural equation model with COVID-19 infection as health outcome (response)
+
+Infection <- psem(
+  glm(covid~use_type+evi+usefulness+comorbidity+income+education+gender+age, family = binomial, data = GEMES),
+  glm(usefulness~education+evi+safety, family = binomial, data=GEMES),
+  glm(safety~evi, family = binomial, data = GEMES),
+  glm(use_type~evi+safety+comorbidity+income+education+gender+age+usefulness, data=GEMES))
+
+summary(Infection)
+
+
+###Section 1.2. Fitting a structural equation model with hospitalizations as health outcome (response)
+
+
+Hospitalisation <- psem(
+  glm(hosp_yn~use_type+evi+usefulness+comorbidity+income+education+gender+age, family = binomial, data = GEMES),
+  glm(usefulness~safety+evi+education, family = binomial, data=GEMES),
+  glm(safety~evi, family = binomial, data = GEMES),
+  glm(use_type~evi+safety+comorbidity+income+education+gender+age+usefulness, data=GEMES))
+
+summary(Hospitalisation)
+
+
+###Section 1.2. Fitting a structural equation model using admission to ICU as health outcome (response)
+
+
+ICU <- psem(
+  glm(icu~use_type+evi+usefulness+comorbidity+income+education+gender+age, family = poisson, data = GEMES),
+  glm(usefulness~safety+evi+education, family = binomial, data=GEMES),
+  glm(safety~evi, family = binomial, data = GEMES),
+  glm(use_type~evi+safety+comorbidity+income+education+gender+age+usefulness, data=GEMES))
+
+summary(ICU)
+
+
